@@ -27,11 +27,11 @@ bys ego (alter) : gen first = _n == 1
 forvalues t = 1/10{
     twoway pcspike y_ego x_ego y_alter x_alter,                ///
                   lcolor(white) scheme(s1rcolor) ||            ///
-        scatter y_ego x_ego if first & inf_t`t'==1             ///
+        scatter y_ego x_ego if first & inf_t`t'==1 ,           ///
                    mcolor(red) msymbol(O) ||                   ///
         scatter y_ego x_ego if first & inf_t`t'==0,            ///
                    mcolor(yellow) msymbol(O)   ||              ///
-        scatter y_ego x_ego if first & inf_t`t'==              ///
+        scatter y_ego x_ego if first & inf_t`t'== 2,           ///
                    mcolor(green) msymbol(O)                    ///	
                    aspect(1) xscale(off) yscale(off)           ///
                    legend(order(3 "susceptible"                ///

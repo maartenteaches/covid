@@ -41,14 +41,11 @@ class covid
 	void                         setup() 
 	void                         run()
 	void                         step()
-	
 
 	void                         infect()
 	void                         infect_neighbours()
 	void                         copy_props()
-	                        
 
-	
 	void                         toStata()
 	real                  scalar peak()
 	real                  scalar saved()
@@ -194,7 +191,7 @@ void covid::setup()
 	t_start        = J(N,1,.)
 	dur            = J(N,tdim,0)
 	susceptible    = J(N,tdim,1)
-	infectives     = J(N,1,NULL)
+	infectives     = J(tdim,1,NULL)
 	//Recovered/Removed = not in infectives & susceptible == 0
 	
 	for(i=1; i<=N; i++) {
