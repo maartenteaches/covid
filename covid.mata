@@ -164,7 +164,7 @@ void covid::setup()
     real scalar i
 	
 	network.clear()
-    
+  
 	if(N == .){
 	    _error("number of nodes needs to be set")
 	}
@@ -193,11 +193,10 @@ void covid::setup()
 	susceptible    = J(N,tdim,1)
 	infectives     = J(tdim,1,NULL)
 	//Recovered/Removed = not in infectives & susceptible == 0
-	
-	for(i=1; i<=N; i++) {
+
+	for(i=1; i<=tdim; i++) {
 	    infectives[i] = &J(1,0,.)
 	}
-	
 	for(i=1;i<=N_index;i++){
 		infect(1,i)
 	}
