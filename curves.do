@@ -11,7 +11,7 @@ model.N_nodes(`n')
 model.degree(10)
 model.pr_weak(0.05)
 model.R0(2.5)
-model.infect_dur(14)
+model.infect_traj((5,8, 11, 14))
 model.N_index(10)
 
 model.tdim(730)
@@ -19,9 +19,9 @@ model.run("quietly")
 model.toStata("inf")
 end
 
-gen S = (`n' - cumul)/`n'*100
-gen I = curent/`n'*100
-gen R = (cumul-curent)/`n'*100
+gen S = (`n' - c_total)/`n'*100
+gen I = total/`n'*100
+gen R = (c_total-total)/`n'*100
 
 twoway line S R I t, ///
     legend(order(1 3 2) rows(1)) scheme(s1rcolor) ///
@@ -44,9 +44,9 @@ model.run("quietly")
 model.toStata("inf")
 end
 
-gen S = (`n' - cumul)/`n'*100
-gen I = curent/`n'*100
-gen R = (cumul-curent)/`n'*100
+gen S = (`n' - c_total)/`n'*100
+gen I = total/`n'*100
+gen R = (c_total-total)/`n'*100
 
 twoway line S R I t, ///
     legend(order(1 3 2) rows(1)) scheme(s1rcolor) ///
@@ -70,9 +70,9 @@ model.run("quietly")
 model.toStata("inf")
 end
 
-gen S = (`n' - cumul)/`n'*100
-gen I = curent/`n'*100
-gen R = (cumul-curent)/`n'*100
+gen S = (`n' - c_total)/`n'*100
+gen I = total/`n'*100
+gen R = (c_total-total)/`n'*100
 
 twoway line S R I t, ///
     legend(order(1 3 2) rows(1)) scheme(s1rcolor) ///
