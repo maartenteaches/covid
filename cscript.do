@@ -175,7 +175,7 @@ mata:
 	}
 	model.dur[.,5] = J(1000,1,5)
 	for(i=1; i<=1000; i++){
-		model.disease_progression(i,5)
+		model.disease_progression(5, i)
 	}
 	assert(model.current[5,.] == (350,650,0,0,0,1000))
 	assert(model.cumul[5,.] == (350,650,0,0,0,1000))
@@ -185,7 +185,7 @@ mata:
 	}
 	model.dur[.,7] = J(1000,1,7)
 	for(i=1; i<=1000; i++){
-		model.disease_progression(i,7)
+		model.disease_progression(7,i)
 	}
 	assert(model.current[7,.] == (350,380,270,0,0,1000))
 	assert(model.cumul[7,.] == (350,380,270,0,0,1000))
@@ -195,7 +195,7 @@ mata:
 	}
 	model.dur[.,9] = J(1000,1,9)
 	for(i=1; i<=1000; i++){
-		model.disease_progression(i,9)
+		model.disease_progression(9,i)
 	}
 	assert(model.current[9,.] == (350, 380, 175,95,0,1000))
 	assert(model.cumul[9,.] == (350, 380, 175,95,0,1000))
@@ -205,7 +205,7 @@ mata:
 	}
 	model.dur[.,14] = J(1000,1,14)
 	for(i=1; i<=1000; i++){
-		model.disease_progression(i,14)
+		model.disease_progression(14,i)
 	}	
 	assert(model.current[14,.] == (350,380, 175, 83,12,1000))
 	assert(model.cumul[14,.] == (350,380, 175, 83,12,1000))
@@ -315,11 +315,11 @@ mata:
 	model.detected[2,1] = 1
 	
 	assert(model.isolate(1,1)==1)
-	assert(model.isolate(1,2)==1)
-	assert(model.isolate(1,3)==1)
 	assert(model.isolate(2,1)==1)
+	assert(model.isolate(3,1)==1)
+	assert(model.isolate(1,2)==1)
 	assert(model.isolate(2,2)==.75)
-	assert(model.isolate(2,3)==.75)
+	assert(model.isolate(3,2)==.75)
 end
 
 // -------------------------------- toStata

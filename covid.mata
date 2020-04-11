@@ -301,14 +301,14 @@ void covid::infect_neighbours(real scalar t, real scalar id)
     
     cols = network.neighbours(id, 0, "dropped_ok", "fast")
     for (i=1; i <= length(cols); i++) {
-        if(runiform(1,1) < w*isolate(id,t)) {
+        if(runiform(1,1) < w*isolate(t,id)) {
             R[id] = R[id] + susceptible[cols[i],t]
             infect(t,cols[i])
         }
     }
 }
 
-real scalar covid::isolate(real scalar id, real scalar t) {
+real scalar covid::isolate(real scalar t, real scalar id) {
 	if (cumul[t,`needs_icu'] < start_measures) {
 		return(1)
 	}
@@ -317,7 +317,7 @@ real scalar covid::isolate(real scalar id, real scalar t) {
 	}
 }
 
-void covid::disease_progression(real scalar id, real scalar t)
+void covid::disease_progression(real scalar t, real scalar id)
 {
 	if (dur[id,t] == infect_traj[1] & 
         runiform(1,1)<traj_probs[1]) {
@@ -380,7 +380,7 @@ void covid::step(real scalar t, string scalar quietly)
         if (dur[inf[i],t] <= infect_traj[4]){
             detect(t,inf[i])
 			infect_neighbours(t,inf[i])
-			disease_progression(inf[i],t)
+			disease_progression(t, inf[i])
         }
         else {
             nhealed[6] = nhealed[6] + 1
