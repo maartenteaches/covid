@@ -9,7 +9,7 @@ run covid.mata
 mata:
 	model = covid()
 	model.N_nodes(5)
-	model.N_nodes()
+	assert(model.N_nodes()==5)
 end
 
 // ---------------------------------- tdim
@@ -17,7 +17,7 @@ mata:
 	model = covid()
 	model.N_nodes(200)
 	model.tdim(100)
-	model.tdim()
+	assert(model.tdim() == 100)
 end
 
 // --------------------------------- repro
@@ -37,6 +37,7 @@ rcof "mata: model.infect_traj((-5,8, 10, 14))" == 3300
 rcof "mata: model.infect_traj((5.2,8, 10, 14))" == 3300
 rcof "mata: model.infect_traj((9,8, 10, 14))" == 3498
 rcof "mata: model.infect_traj((9,8, 10))" == 3498
+
 // ------------------------------- traj_probs
 mata:
 	model.traj_probs((.6,.3, .5, .1))
@@ -46,6 +47,23 @@ end
 rcof "mata: model.traj_probs((1.6,.3, .5, .1))" == 3300
 rcof "mata: model.traj_probs((.6,.3, .5))" == 3498
 
+// -------------------------------- q_effect
+mata:
+	model.q_effect(.5)
+	assert(model.q_effect() ==.5)
+end
+
+// ---------------------------- start_measures
+mata:
+	model.start_measures(3)
+	assert(model.start_measures()==3)
+end
+
+// ------------------------------- detect_probs
+mata:
+	model.detect_probs((.001,.03, 1, 1))
+	assert(model.detect_probs() == (.001,.03, 1, 1))
+end
 
 // ---------------------------------- degree
 mata:
@@ -234,11 +252,74 @@ mata:
 	}
 	assert((*model.infectives[13])[1] == 1)
 	assert((*model.infectives[14])[1] != 1)
-	assert(model.current[13,.] == (3,2,0,0,0,5))
-	assert(model.current[14,.] == (3,1,0,0,0,4))
-	assert(model.cumul[13,.] == (3,2,0,0,0,5))
-	assert(model.cumul[14,.] == (3,2,0,0,0,5))
+	assert(model.current[13,.] == (5,1,0,0,0,6))
+	assert(model.current[14,.] == (4,1,0,0,0,5))
+	assert(model.cumul[13,.] == (5,1,0,0,0,6))
+	assert(model.cumul[14,.] == (5,1,0,0,0,6))
 	
+end
+
+// ---------------------------------- detect
+mata:
+	model = covid()
+	model.N_nodes(1000)
+	model.infect_traj((5,7,9,10))
+	model.detect_probs((0.005, 0.05, .5, 1))
+	model.R0(4)
+	model.tdim(2)
+	model.setup()
+	
+	model.status = J(1000,1,1)
+	model.detected[.,1] = J(1000,1,0)
+	for(i=1; i<=1000;i++){
+		model.detect(1,i)
+	}
+	assert(mean(model.detected[.,1])==.007) // close enough
+
+	model.status = J(1000,1,2)
+	model.detected[.,1] = J(1000,1,0)
+	for(i=1; i<=1000;i++){
+		model.detect(1,i)
+	}
+	assert(mean(model.detected[.,1])==.044) // close enough
+		
+	model.status = J(1000,1,3)
+	model.detected[.,1] = J(1000,1,0)
+	for(i=1; i<=1000;i++){
+		model.detect(1,i)
+	}
+	assert(mean(model.detected[.,1]) == .5)
+	
+	model.status = J(1000,1,4)
+	model.detected[.,1] = J(1000,1,0)
+	for(i=1; i<=1000;i++){
+		model.detect(1,i)
+	}
+	assert(mean(model.detected[.,1])==1)		
+end
+
+// -------------------------------- isolate
+mata:
+	model = covid()
+	model.N_nodes(1000)
+	model.infect_traj((5,7,9,10))
+	model.detect_probs((0.005, 0.05, .5, 1))
+	model.R0(4)
+	model.tdim(3)
+	model.start_measures(2)
+	model.q_effect(.25)
+	model.setup()
+	model.cumul[2,4] = 2
+	model.cumul[3,4] = 3
+	model.detected[1,1] = 0
+	model.detected[2,1] = 1
+	
+	assert(model.isolate(1,1)==1)
+	assert(model.isolate(1,2)==1)
+	assert(model.isolate(1,3)==1)
+	assert(model.isolate(2,1)==1)
+	assert(model.isolate(2,2)==.75)
+	assert(model.isolate(2,3)==.75)
 end
 
 // -------------------------------- toStata

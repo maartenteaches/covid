@@ -19,11 +19,14 @@ class covid
     real                  scalar R0
     real                  vector infect_traj // onset symptoms, need hospital, need ICU, over
     real                  vector traj_probs   
+	real                  vector detect_probs
     real                  scalar N
     real                  scalar degree
     real                  scalar pr_weak
     real                  scalar N_index
     real                  scalar tdim
+	real                  scalar q_effect
+	real                  scalar start_measures
 
     real                  scalar w
     class abm_nw          scalar network
@@ -31,6 +34,7 @@ class covid
     real                  matrix susceptible
     pointer (real vector) vector infectives
     real                  matrix dur
+	real                  matrix detected
     real                  vector R
     real                  vector t_start
     real                  vector status
@@ -40,11 +44,14 @@ class covid
     transmorphic                 R0()   
     transmorphic                 infect_traj()
     transmorphic                 traj_probs()
+	transmorphic                 detect_probs()
     transmorphic                 N_nodes()
     transmorphic                 degree()
     transmorphic                 pr_weak()
     transmorphic                 N_index()
     transmorphic                 tdim()
+	transmorphic                 q_effect()
+	transmorphic                 start_measures()
 
     void                         is_posint()
     void                         is_pr()
@@ -56,6 +63,8 @@ class covid
     void                         infect()
 	void                         disease_progression()
     void                         infect_neighbours()
+	void                         detect()
+	real                  scalar isolate()
     void                         copy_props()
 
     void                         toStata()
@@ -93,6 +102,18 @@ transmorphic covid::infect_traj(| real vector val)
     }
 }
 
+transmorphic covid::detect_probs(| real vector val)
+{
+    if (args()==1) {
+        is_pr(val)
+        if(cols(val)!=4) _error("4 columns need to be specified")
+        detect_probs = val
+    }
+    else {
+        return(detect_probs)
+    }
+}
+
 transmorphic covid::traj_probs(| real vector val)
 {
     if (args()==1) {
@@ -105,6 +126,27 @@ transmorphic covid::traj_probs(| real vector val)
     }
 }
 
+transmorphic covid::q_effect(| real vector val)
+{
+    if (args()==1) {
+        is_pr(val)
+        q_effect = val
+    }
+    else {
+        return(q_effect)
+    }
+}
+
+transmorphic covid::start_measures(| real vector val)
+{
+    if (args()==1) {
+        is_posint(val, "zero_ok")
+        start_measures = val
+    }
+    else {
+        return(start_measures)
+    }
+}
 
 transmorphic covid::N_nodes(| real scalar val)
 {
@@ -201,6 +243,9 @@ void covid::setup()
     network.tdim(0)
     if (infect_traj == J(1,0,.)) infect_traj = (5, 7, 9, 14)
     if (traj_probs == J(1,0,.)) traj_probs = (0.65, 0.4, 0.4, 0.1)
+	if (detect_probs == J(1,0,.)) detect_probs = (0.005, 0.05, 1, 1)
+	if (q_effect == .) q_effect = 0
+	if (start_measures == .) start_measures = 2
     if (R0 == .) {
         _error("reproduction number needs to be set")
     }
@@ -221,6 +266,7 @@ void covid::setup()
     t_start        = J(N,1,.)
     status         = J(N,1,.)
     dur            = J(N,tdim,0)
+	detected       = J(N,2,0)
     susceptible    = J(N,tdim,1)
     infectives     = J(tdim,1,NULL)
     //Recovered/Removed = not in infectives & susceptible == 0
@@ -255,11 +301,20 @@ void covid::infect_neighbours(real scalar t, real scalar id)
     
     cols = network.neighbours(id, 0, "dropped_ok", "fast")
     for (i=1; i <= length(cols); i++) {
-        if(runiform(1,1) < w) {
+        if(runiform(1,1) < w*isolate(id,t)) {
             R[id] = R[id] + susceptible[cols[i],t]
             infect(t,cols[i])
         }
     }
+}
+
+real scalar covid::isolate(real scalar id, real scalar t) {
+	if (cumul[t,`needs_icu'] < start_measures) {
+		return(1)
+	}
+	else{
+		return(1- detected[id,1]*q_effect)
+	}
 }
 
 void covid::disease_progression(real scalar id, real scalar t)
@@ -302,6 +357,15 @@ void covid::disease_progression(real scalar id, real scalar t)
 	
 }
 
+void covid::detect(real scalar t, real scalar id)
+{
+	if (detected[id,1]==0) {
+		if (runiform(1,1)<detect_probs[status[id]]) {
+			detected[id,.] = (1,t)
+		}
+	}
+}
+
 void covid::step(real scalar t, string scalar quietly)
 {
     real vector inf, nhealed
@@ -314,7 +378,8 @@ void covid::step(real scalar t, string scalar quietly)
     for(i=1; i<= k; i++) {
         dur[inf[i],t] = dur[inf[i],t] + 1
         if (dur[inf[i],t] <= infect_traj[4]){
-            infect_neighbours(t,inf[i])
+            detect(t,inf[i])
+			infect_neighbours(t,inf[i])
 			disease_progression(inf[i],t)
         }
         else {
@@ -373,8 +438,8 @@ void covid::toStata(string scalar what)
         "c_no_symptoms", "c_mild_symptoms", "c_needs_hospital", "c_needs_icu", "c_dead", "c_total"
     }
     else if (what == "R") {
-        res = (1..N)', t_start, R
-        varnames = "id", "t_start", "R"
+        res = (1..N)', t_start, R, detected, status
+        varnames = "id", "t_start", "R", "detected", "t_detected", "status"
     }
     else if (what == "nw") {
         res = network.export_edgelist(0, "ego_all") 
